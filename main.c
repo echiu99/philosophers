@@ -6,7 +6,7 @@
 /*   By: echiu <marvin@42.fr>                       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/29 14:49:29 by echiu             #+#    #+#             */
-/*   Updated: 2024/09/02 15:25:59 by echiu            ###   ########.fr       */
+/*   Updated: 2024/09/02 17:34:05 by echiu            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -84,37 +84,32 @@ void	*addition(void *philo)
 
 	while (1)
 	{
-		usleep((filo->index % 2) * 100);
-		if (filo->can_pick_up_right_beer)
+		if (filo->index % 2 == 0)
 		{
-			if (filo->index % 2 == 0)
-			{
-				pthread_mutex_lock(&filo->l_beer);
-				print_status(filo, "has picked up left beer");
+			pthread_mutex_lock(filo->l_fork);
+			print_status(filo, "has picked up left fork");
 
-				pthread_mutex_lock(&filo->r_beer);
-				print_status(filo, "has picked up right beer");
-			}
-			else
-			{
-				pthread_mutex_lock(&filo->r_beer);
-				print_status(filo, "has picked up right beer");
-
-				pthread_mutex_lock(&filo->l_beer);
-				print_status(filo, "has picked up left beer");
-			}
-			print_status(filo, "is drinking");
-			filo->last_meal = get_time_in_ms();
-			usleep(filo->data->time_to_eat * 1000);
-
-			pthread_mutex_unlock(&filo->r_beer);
-			print_status(filo, "has dropped right beer");
-
-			pthread_mutex_unlock(&filo->l_beer);
-			print_status(filo, "has dropped left beer");
+			pthread_mutex_lock(filo->r_fork);
+			print_status(filo, "has picked up right fork");
 		}
 		else
-			print_status(filo, "is thinking but has no right beer to pick up");
+		{
+			pthread_mutex_lock(filo->r_fork);
+			print_status(filo, "has picked up right fork");
+
+			pthread_mutex_lock(filo->l_fork);
+			print_status(filo, "has picked up left fork");
+		}
+		print_status(filo, "is eating");
+		filo->last_meal = get_time_in_ms();
+		usleep(filo->data->time_to_eat * 1000);
+
+		pthread_mutex_unlock(filo->r_fork);
+		print_status(filo, "has dropped right fork");
+
+		pthread_mutex_unlock(filo->l_fork);
+		print_status(filo, "has dropped left fork");
+		
 
 		print_status(filo, "is sleeping");
 		usleep(filo->data->time_to_sleep * 1000);
@@ -123,50 +118,6 @@ void	*addition(void *philo)
 	}
 	return (NULL);
 }
-
-/* void	*addition(void *philo)
-{
-	t_philo	*filo;
-
-	filo = philo;
-	if (filo->index == 0)
-	{
-		if (filo[filo->data->philo_num - 1].f_id == 0)
-		{
-			pthread_mutex_lock(&filo->l_beer);
-			filo->f_id++;
-			printf("I am philo number %d, and I think I picked up a beer\n", filo->index);
-			pthread_mutex_lock(&filo[filo->data->philo_num - 1].l_beer);
-			filo[filo->data->philo_num - 1].f_id++;
-			printf("I am philo number %d, and I think I picked up a second beer, number %llu\n", filo->index, filo->data->philo_num - 1);
-			printf("I am philo number %d, and I will now drink\n", filo->index);
-			usleep(5);
-			pthread_mutex_unlock(&filo->l_beer);
-			printf("I am philo number %d, and I dropped my beer\n", filo->index);
-			pthread_mutex_unlock(&filo[filo->data->philo_num - 1].l_beer);
-			printf("I am philo number %d, and I dropped the last person's beer, number %llu\n", filo->index, filo->data->philo_num - 1);
-		}
-	}
-	else
-	{
-		if (filo[filo->index + 1].f_id == 0)
-		{
-			pthread_mutex_lock(&filo->l_beer);
-			filo->f_id++;
-			printf("I am philo number %d, and I think I picked up a beer\n", filo->index);
-			pthread_mutex_lock(&filo[filo->index + 1].l_beer);
-			filo[filo->data->philo_num - 1].f_id++;
-			printf("I am philo number %d, and I think I picked up a second beer, number %d\n", filo->index, filo->index + 1);
-			printf("I am philo number %d, and I will now drink\n", filo->index);
-			usleep(5);
-			pthread_mutex_unlock(&filo->l_beer);
-			printf("I am philo number %d, and I dropped my beer\n", filo->index);
-			pthread_mutex_unlock(&filo[filo->index + 1].l_beer);
-			printf("I am philo number %d, and I dropped the next person's beer number %d\n", filo->index, filo->index + 1);
-		}
-	}
-	return (NULL);
-} */
 
 void	init_data(t_data *data, unsigned long long *arr, int argc)
 {
@@ -180,6 +131,7 @@ void	init_data(t_data *data, unsigned long long *arr, int argc)
 	else
 		data->num_times_to_eat = 0;
 	data->philos = malloc(data->philo_num * sizeof(t_philo));
+	data->forks = malloc(data->philo_num * sizeof(pthread_mutex_t));
 	if (pthread_mutex_init(&data->lock, NULL) != 0)
 	{
 		printf("error\n");
@@ -188,37 +140,24 @@ void	init_data(t_data *data, unsigned long long *arr, int argc)
 	data->start_time = get_time_in_ms();
 	while (data->nbr < data->philo_num)
 	{
-		data->philos[data->nbr].data = data;
-		if (pthread_mutex_init(&data->philos[data->nbr].l_beer, NULL) != 0)
-		{
-			printf("error\n");
-			return ;
-		}
-		data->philos[data->nbr].index = data->nbr;
-		data->philos[data->nbr].id = data->nbr + 1;
+		pthread_mutex_init(&data->forks[data->nbr], NULL);
 		data->nbr++;
 	}
 	data->nbr = 0;
-	if (data->philo_num == 1)
-		data->philos[0].can_pick_up_right_beer = 0;
-	else
+	while (data->nbr < data->philo_num)
 	{
-		while (data->nbr < data->philo_num)
-		{
-			if (data->nbr == data->philo_num - 1)
-				data->philos[data->nbr].r_beer = data->philos[0].l_beer;
-			else
-				data->philos[data->nbr].r_beer = data->philos[data->nbr + 1].l_beer;
-			data->philos[data->nbr].can_pick_up_right_beer = 1;
-			data->nbr++;
-		}
+		data->philos[data->nbr].data = data;
+		data->philos[data->nbr].index = data->nbr;
+		data->philos[data->nbr].id = data->nbr + 1;
+		data->philos[data->nbr].l_fork = &data->forks[data->nbr];
+		data->philos[data->nbr].r_fork = &data->forks[(data->nbr + 1) % data->philo_num];
+		data->nbr++;
 	}
 	data->nbr = 0;
 	while (data->nbr < data->philo_num)
 	{
 		if (pthread_create(&data->philos[data->nbr].thread, NULL, &addition, (void *)&data->philos[data->nbr]) != 0)
 			printf("Ayo shit don't work\n");
-		usleep(100);
 		data->nbr++;
 	}
 	data->nbr = 0;
@@ -231,10 +170,11 @@ void	init_data(t_data *data, unsigned long long *arr, int argc)
 	data->nbr = 0;
 	while (data->nbr < data->philo_num)
 	{
-		pthread_mutex_destroy(&data->philos[data->nbr].l_beer);
+		pthread_mutex_destroy(&data->forks[data->nbr]);
 		data->nbr++;
 	}
 	free(data->philos);
+	free(data->forks);
 }
 
 int	main(int argc, char **argv)

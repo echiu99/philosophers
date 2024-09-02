@@ -6,7 +6,7 @@
 /*   By: echiu <marvin@42.fr>                       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/29 14:49:52 by echiu             #+#    #+#             */
-/*   Updated: 2024/09/02 15:15:42 by echiu            ###   ########.fr       */
+/*   Updated: 2024/09/02 17:30:39 by echiu            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,13 +25,12 @@ struct	s_data;
 typedef struct s_philo
 {
 	struct s_data		*data;
-	pthread_mutex_t		l_beer;
-	pthread_mutex_t		r_beer;
+	pthread_mutex_t		*l_fork;
+	pthread_mutex_t		*r_fork;
 	pthread_t			thread;
 	int					id;
 	int					index;
 	int					meals_eaten;
-	int					can_pick_up_right_beer;
 	unsigned long long	last_meal;
 }	t_philo;
 
@@ -45,6 +44,7 @@ typedef struct s_data
 	unsigned long long	num_times_to_eat;
 	unsigned long long	start_time;
 	pthread_mutex_t		lock;
+	pthread_mutex_t		*forks;
 	t_philo				*philos;
 }	t_data;
 
