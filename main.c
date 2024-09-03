@@ -6,69 +6,11 @@
 /*   By: echiu <marvin@42.fr>                       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/29 14:49:29 by echiu             #+#    #+#             */
-/*   Updated: 2024/09/03 12:35:36 by echiu            ###   ########.fr       */
+/*   Updated: 2024/09/03 15:17:16 by echiu            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philo.h"
-
-unsigned long long	get_time_in_us(void)
-{
-	struct timeval	tv;
-
-	if (gettimeofday(&tv, NULL) == -1)
-		write(2, "gettimeofday() error\n", 22);
-	return ((tv.tv_sec * 1000000) + (tv.tv_usec));
-}
-
-int	ft_usleep(useconds_t time)
-{
-	unsigned long long	start;
-
-	start = get_time_in_us();
-	while ((get_time_in_us() - start) < time)
-		usleep(time / 10);
-	return (0);
-}
-
-void	print_status(t_philo *philo, char *message)
-{
-	unsigned long long	current_time;
-
-	current_time = get_time_in_us();
-	pthread_mutex_lock(&philo->data->lock);
-	printf("%llu %d %s\n", (current_time - philo->data->start_time) / 1000, philo->id, message);
-	pthread_mutex_unlock(&philo->data->lock);
-}
-
-unsigned long long	*ft_ato2long(char **str, int argc)
-{
-	unsigned int		i;
-	unsigned int		j;
-	unsigned long long	*ret;
-
-	ret = malloc((argc - 1) * sizeof(unsigned long long));
-	i = 0;
-	while (++i < (unsigned int)argc)
-		ret[i - 1] = 0;
-	i = 0;
-	while (++i < (unsigned int) argc)
-	{
-		j = -1;
-		while (str[i][++j] != '\0')
-			ret[i - 1] = ret[i - 1] * 10 + (str[i][j] - 48);
-	}
-	i = 0;
-	while (++i < (unsigned int)argc)
-	{
-		if (ret[i - 1] == 0 || ret[0] > 200)
-		{
-			free(ret);
-			return (NULL);
-		}
-	}
-	return (ret);
-}
 
 int	test_params(char **str)
 {
@@ -91,92 +33,50 @@ int	test_params(char **str)
 	return (0);
 }
 
-void	*addition(void *philo)
+void	*routine(void *data_pointer) //Function too long
 {
-	t_philo	*filo;
+	t_philo	*philo;
 
-	filo = philo;
-
+	philo = data_pointer;
 	while (1)
 	{
-		if (filo->index % 2 == 0)
+		if (philo->index % 2 == 0)
 		{
-			pthread_mutex_lock(filo->r_fork);
-			print_status(filo, "has picked up right fork");
-
-			pthread_mutex_lock(filo->l_fork);
-			print_status(filo, "has picked up left fork");
+			pthread_mutex_lock(philo->r_fork);
+			print_status(philo, "has taken a fork");
+			pthread_mutex_lock(philo->l_fork);
+			print_status(philo, "has taken a fork");
 		}
 		else
 		{
-			pthread_mutex_lock(filo->l_fork);
-			print_status(filo, "has picked up left fork");
-
-			pthread_mutex_lock(filo->r_fork);
-			print_status(filo, "has picked up right fork");
+			pthread_mutex_lock(philo->l_fork);
+			print_status(philo, "has taken a fork");
+			pthread_mutex_lock(philo->r_fork);
+			print_status(philo, "has taken fork");
 		}
-		print_status(filo, "is eating");
-		filo->last_meal = get_time_in_us();
-		ft_usleep(filo->data->time_to_eat * 1000);
-
-		pthread_mutex_unlock(filo->r_fork);
-		pthread_mutex_unlock(filo->l_fork);
-
-		print_status(filo, "is sleeping");
-		ft_usleep(filo->data->time_to_sleep * 1000);
-	
-		print_status(filo, "is thinking");
+		print_status(philo, "is eating");
+		philo->last_meal = get_time_in_us();
+		ft_usleep(philo->data->time_to_eat * 1000);
+		pthread_mutex_unlock(philo->r_fork);
+		pthread_mutex_unlock(philo->l_fork);
+		print_status(philo, "is sleeping");
+		ft_usleep(philo->data->time_to_sleep * 1000);
+		print_status(philo, "is thinking");
 	}
 	return (NULL);
 }
 
-void	init_data(t_data *data, unsigned long long *arr, int argc)
+/* void	*monitor(void *data_pointer)
 {
-	data->nbr = 0;
-	data->philo_num = arr[0];
-	data->time_to_die = arr[1];
-	data->time_to_eat = arr[2];
-	data->time_to_sleep = arr[3];
-	if (argc == 6)
-		data->num_times_to_eat = arr[4];
-	else
-		data->num_times_to_eat = 0;
-	data->philos = malloc(data->philo_num * sizeof(t_philo));
-	data->forks = malloc(data->philo_num * sizeof(pthread_mutex_t));
-	if (pthread_mutex_init(&data->lock, NULL) != 0)
-	{
-		printf("error\n");
-		return ;
-	}
-	data->start_time = get_time_in_us();
-	while (data->nbr < data->philo_num)
-	{
-		pthread_mutex_init(&data->forks[data->nbr], NULL);
-		data->nbr++;
-	}
-	data->nbr = 0;
-	while (data->nbr < data->philo_num)
-	{
-		data->philos[data->nbr].data = data;
-		data->philos[data->nbr].index = data->nbr;
-		data->philos[data->nbr].id = data->nbr + 1;
-		data->philos[data->nbr].l_fork = &data->forks[data->nbr];
-		data->philos[data->nbr].r_fork = &data->forks[(data->nbr + 1) % data->philo_num];
-		data->nbr++;
-	}
-	data->nbr = 0;
-	while (data->nbr < data->philo_num)
-	{
-		if (pthread_create(&data->philos[data->nbr].thread, NULL, &addition, (void *)&data->philos[data->nbr]) != 0)
-			printf("Ayo shit don't work\n");
-		data->nbr++;
-	}
-	data->nbr = 0;
-	while (data->nbr < data->philo_num)
-	{
-		pthread_join(data->philos[data->nbr].thread, NULL);
-		data->nbr++;
-	}
+	t_philo	*philo;
+
+	philo = data_pointer;
+	pthread_mutex_lock(&philo->data->lock);
+// Unfinished
+} */
+
+void	free_all(t_data *data)
+{
 	pthread_mutex_destroy(&data->lock);
 	data->nbr = 0;
 	while (data->nbr < data->philo_num)
@@ -188,7 +88,7 @@ void	init_data(t_data *data, unsigned long long *arr, int argc)
 	free(data->forks);
 }
 
-int	main(int argc, char **argv)
+int	main(int argc, char **argv) //Function too long
 {
 	t_data				data;
 	unsigned long long	*arr;	
@@ -203,6 +103,9 @@ int	main(int argc, char **argv)
 			return (0);
 		}
 		init_data(&data, arr, argc);
+		init_philos(&data);
+		init_threads(&data);
+		free_all(&data);
 	}
 	else if (test_params(argv) == 1)
 	{

@@ -5,6 +5,8 @@ CC = cc
 CFLAGS = -Wall -Werror -Wextra -g -pthread
 
 SRC = main.c \
+      init.c \
+      utils.c \
 
 OBJ = $(SRC:.c=.o)
 

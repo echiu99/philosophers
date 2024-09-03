@@ -6,7 +6,7 @@
 /*   By: echiu <marvin@42.fr>                       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/29 14:49:52 by echiu             #+#    #+#             */
-/*   Updated: 2024/09/02 17:30:39 by echiu            ###   ########.fr       */
+/*   Updated: 2024/09/03 15:14:44 by echiu            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,6 +36,8 @@ typedef struct s_philo
 
 typedef struct s_data
 {
+	int					dead;
+	int					finished;
 	unsigned long long	nbr;
 	unsigned long long	philo_num;
 	unsigned long long	time_to_die;
@@ -47,5 +49,16 @@ typedef struct s_data
 	pthread_mutex_t		*forks;
 	t_philo				*philos;
 }	t_data;
+
+int					test_params(char **str);
+int					ft_usleep(useconds_t time);
+void				*routine(void *philo);
+void				free_all(t_data *data);
+void				init_philos(t_data *data);
+void				init_threads(t_data *data);
+void				print_status(t_philo *philo, char *message);
+void				init_data(t_data *data, unsigned long long *arr, int argc);
+unsigned long long	get_time_in_us(void);
+unsigned long long	*ft_ato2long(char **str, int argc);
 
 #endif
