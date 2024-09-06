@@ -6,7 +6,7 @@
 /*   By: echiu <marvin@42.fr>                       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/29 14:49:52 by echiu             #+#    #+#             */
-/*   Updated: 2024/09/03 15:14:44 by echiu            ###   ########.fr       */
+/*   Updated: 2024/09/06 13:03:03 by echiu            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,9 +27,12 @@ typedef struct s_philo
 	struct s_data		*data;
 	pthread_mutex_t		*l_fork;
 	pthread_mutex_t		*r_fork;
+	pthread_mutex_t		*dead_lock;
+	pthread_mutex_t		*meal_lock;
+	pthread_mutex_t		*write_lock;
 	pthread_t			thread;
-	int					id;
 	int					index;
+	int					dead;
 	int					meals_eaten;
 	unsigned long long	last_meal;
 }	t_philo;
@@ -45,7 +48,9 @@ typedef struct s_data
 	unsigned long long	time_to_sleep;
 	unsigned long long	num_times_to_eat;
 	unsigned long long	start_time;
-	pthread_mutex_t		lock;
+	pthread_mutex_t		write_lock;
+	pthread_mutex_t		dead_lock;
+	pthread_mutex_t		meal_lock;
 	pthread_mutex_t		*forks;
 	t_philo				*philos;
 }	t_data;

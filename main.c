@@ -6,7 +6,7 @@
 /*   By: echiu <marvin@42.fr>                       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/29 14:49:29 by echiu             #+#    #+#             */
-/*   Updated: 2024/09/03 15:17:16 by echiu            ###   ########.fr       */
+/*   Updated: 2024/09/06 17:01:31 by echiu            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,6 +42,7 @@ void	*routine(void *data_pointer) //Function too long
 	{
 		if (philo->index % 2 == 0)
 		{
+			ft_usleep(1);
 			pthread_mutex_lock(philo->r_fork);
 			print_status(philo, "has taken a fork");
 			pthread_mutex_lock(philo->l_fork);
@@ -55,6 +56,9 @@ void	*routine(void *data_pointer) //Function too long
 			print_status(philo, "has taken fork");
 		}
 		print_status(philo, "is eating");
+		pthread_mutex_lock(philo->meal_lock);
+		philo->meals_eaten++;
+		pthread_mutex_unlock(philo->meal_lock);
 		philo->last_meal = get_time_in_us();
 		ft_usleep(philo->data->time_to_eat * 1000);
 		pthread_mutex_unlock(philo->r_fork);
@@ -77,7 +81,9 @@ void	*routine(void *data_pointer) //Function too long
 
 void	free_all(t_data *data)
 {
-	pthread_mutex_destroy(&data->lock);
+	pthread_mutex_destroy(&data->write_lock);
+	pthread_mutex_destroy(&data->dead_lock);
+	pthread_mutex_destroy(&data->meal_lock);
 	data->nbr = 0;
 	while (data->nbr < data->philo_num)
 	{

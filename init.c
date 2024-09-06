@@ -6,7 +6,7 @@
 /*   By: echiu <marvin@42.fr>                       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/03 15:11:55 by echiu             #+#    #+#             */
-/*   Updated: 2024/09/03 15:16:14 by echiu            ###   ########.fr       */
+/*   Updated: 2024/09/06 16:54:00 by echiu            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,11 +54,13 @@ void	init_philos(t_data *data)
 	while (data->nbr < data->philo_num)
 	{
 		data->philos[data->nbr].data = data;
-		data->philos[data->nbr].index = data->nbr;
-		data->philos[data->nbr].id = data->nbr + 1;
+		data->philos[data->nbr].index = data->nbr + 1;
 		data->philos[data->nbr].l_fork = &data->forks[data->nbr];
 		data->philos[data->nbr].r_fork = &data->forks[(data->nbr + 1)
 			% data->philo_num];
+		data->philos[data->nbr].write_lock = &data->write_lock;
+		data->philos[data->nbr].dead_lock = &data->dead_lock;
+		data->philos[data->nbr].meal_lock = &data->meal_lock;
 		data->nbr++;
 	}
 }
@@ -84,7 +86,17 @@ void	init_data(t_data *data, unsigned long long *arr, int argc)
 	}
 	data->philos = malloc(data->philo_num * sizeof(t_philo));
 	data->forks = malloc(data->philo_num * sizeof(pthread_mutex_t));
-	if (pthread_mutex_init(&data->lock, NULL) != 0)
+	if (pthread_mutex_init(&data->write_lock, NULL) != 0)
+	{
+		printf("error\n");
+		return ;
+	}
+	if (pthread_mutex_init(&data->dead_lock, NULL) != 0)
+	{
+		printf("error\n");
+		return ;
+	}
+	if (pthread_mutex_init(&data->meal_lock, NULL) != 0)
 	{
 		printf("error\n");
 		return ;

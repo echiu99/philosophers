@@ -6,7 +6,7 @@
 /*   By: echiu <marvin@42.fr>                       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/03 13:49:29 by echiu             #+#    #+#             */
-/*   Updated: 2024/09/03 13:49:57 by echiu            ###   ########.fr       */
+/*   Updated: 2024/09/06 16:55:31 by echiu            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,7 +27,7 @@ int	ft_usleep(useconds_t time)
 
 	start = get_time_in_us();
 	while ((get_time_in_us() - start) < time)
-		usleep(time / 10);
+		usleep(500);
 	return (0);
 }
 
@@ -36,10 +36,10 @@ void	print_status(t_philo *philo, char *message)
 	unsigned long long	current_time;
 
 	current_time = get_time_in_us();
-	pthread_mutex_lock(&philo->data->lock);
+	pthread_mutex_lock(&philo->data->write_lock);
 	printf("%llu %d %s\n", (current_time - philo->data->start_time)
-		/ 1000, philo->id, message);
-	pthread_mutex_unlock(&philo->data->lock);
+		/ 1000, philo->index, message);
+	pthread_mutex_unlock(&philo->data->write_lock);
 }
 
 unsigned long long	*ft_ato2long(char **str, int argc)
