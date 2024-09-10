@@ -6,7 +6,7 @@
 /*   By: echiu <marvin@42.fr>                       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/29 14:49:29 by echiu             #+#    #+#             */
-/*   Updated: 2024/09/06 17:01:31 by echiu            ###   ########.fr       */
+/*   Updated: 2024/09/10 16:56:48 by echiu            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,7 +33,7 @@ int	test_params(char **str)
 	return (0);
 }
 
-void	*routine(void *data_pointer) //Function too long
+void	*routine(void *data_pointer) // Function too long
 {
 	t_philo	*philo;
 
@@ -70,14 +70,36 @@ void	*routine(void *data_pointer) //Function too long
 	return (NULL);
 }
 
-/* void	*monitor(void *data_pointer)
+void	*monitor(void *data_pointer) // Unfinished && Too long
 {
-	t_philo	*philo;
+	int		i;
+	int		all_full;
+	t_data	*data;
 
-	philo = data_pointer;
-	pthread_mutex_lock(&philo->data->lock);
-// Unfinished
-} */
+	data = data_pointer;
+	while (1)
+	{
+		i = 0;
+		all_full = 1;
+		while (i < data->philo_num)
+		{
+			pthread_mutex_lock(&data->philos[i].meal_lock);
+			if (get_time_in_us() - data->philos[i].last_meal
+				> data->time_to_die)
+			{
+				pthread_mutex_lock(&data->dead_lock);
+				data->dead = 1;
+				print_status(&data->philos[i], "has died");
+				pthread_mutex_unlock(&data->dead_lock);
+				pthread_mutex_unlock(&data->philos[i].meal_lock);
+				return (NULL);
+			}
+			if (data->num_times_to_eat > 0)
+			{
+			}
+		}
+	}
+}
 
 void	free_all(t_data *data)
 {

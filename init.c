@@ -6,7 +6,7 @@
 /*   By: echiu <marvin@42.fr>                       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/03 15:11:55 by echiu             #+#    #+#             */
-/*   Updated: 2024/09/06 16:54:00 by echiu            ###   ########.fr       */
+/*   Updated: 2024/09/10 16:53:21 by echiu            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,7 +32,6 @@ void	init_threads(t_data *data)
 			printf("Error creating philosopher thread\n");
 			return ;
 		}
-		ft_usleep(1);
 		data->nbr++;
 	}
 	data->nbr = 0;
@@ -65,7 +64,7 @@ void	init_philos(t_data *data)
 	}
 }
 
-void	init_data(t_data *data, unsigned long long *arr, int argc)
+void	init_data(t_data *data, unsigned long long *arr, int argc) // Function too long
 {
 	data->nbr = 0;
 	data->dead = 0;
