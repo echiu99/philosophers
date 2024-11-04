@@ -6,7 +6,7 @@
 /*   By: echiu <marvin@42.fr>                       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/29 14:49:52 by echiu             #+#    #+#             */
-/*   Updated: 2024/09/06 13:03:03 by echiu            ###   ########.fr       */
+/*   Updated: 2024/11/04 14:05:03 by echiu            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,8 +33,8 @@ typedef struct s_philo
 	pthread_t			thread;
 	int					index;
 	int					dead;
-	int					meals_eaten;
 	unsigned long long	last_meal;
+	unsigned long long	meals_eaten;
 }	t_philo;
 
 typedef struct s_data
@@ -61,6 +61,7 @@ void				*routine(void *philo);
 void				free_all(t_data *data);
 void				init_philos(t_data *data);
 void				init_threads(t_data *data);
+void				*monitor(void *data_pointer);
 void				print_status(t_philo *philo, char *message);
 void				init_data(t_data *data, unsigned long long *arr, int argc);
 unsigned long long	get_time_in_us(void);

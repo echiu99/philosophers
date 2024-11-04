@@ -6,7 +6,7 @@
 /*   By: echiu <marvin@42.fr>                       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/03 15:11:55 by echiu             #+#    #+#             */
-/*   Updated: 2024/09/10 16:53:21 by echiu            ###   ########.fr       */
+/*   Updated: 2024/11/04 15:54:03 by echiu            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,15 +14,8 @@
 
 void	init_threads(t_data *data)
 {
-/*	pthread_t	t0;
+	pthread_t	t0;
 
-	if (data->num_times_to_eat > 0)
-	{
-		if (pthread_create(&t0, NULL, &monitor, &data->philos[0]) != 0)
-		{
-			printf("Error creating monitor thread\n");
-			return ;
-		} */
 	data->nbr = 0;
 	while (data->nbr < data->philo_num)
 	{
@@ -34,6 +27,16 @@ void	init_threads(t_data *data)
 		}
 		data->nbr++;
 	}
+	if (data->num_times_to_eat > 0)
+	{
+		if (pthread_create(&t0, NULL, &monitor, (void *)data) != 0)
+		{
+			printf("Error creating monitor thread\n");
+			return ;
+		}
+	}
+	if (data->num_times_to_eat > 0)
+		pthread_join(t0, NULL);
 	data->nbr = 0;
 	while (data->nbr < data->philo_num)
 	{
