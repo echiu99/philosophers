@@ -1,72 +1,76 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   utils.c                                            :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: echiu <marvin@42.fr>                       +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/09/03 13:49:29 by echiu             #+#    #+#             */
-/*   Updated: 2024/09/06 16:55:31 by echiu            ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include "philo.h"
 
-unsigned long long	get_time_in_us(void)
+int	ft_strlen(char *str)
 {
-	struct timeval	tv;
+	int	i;
 
-	if (gettimeofday(&tv, NULL) == -1)
-		write(2, "gettimeofday() error\n", 22);
-	return ((tv.tv_sec * 1000000) + (tv.tv_usec));
+	if (str == NULL)
+		return (0);
+	i = 0;
+	while (str[i] != '\0')
+		i++;
+	return (i);
 }
 
-int	ft_usleep(useconds_t time)
+int	ft_atoi(char *str)
 {
-	unsigned long long	start;
+	unsigned long long	nb;
+	int			sign;
+	int			i;
 
-	start = get_time_in_us();
-	while ((get_time_in_us() - start) < time)
+	nb = 0;
+	sign = 1;
+	i = 0;
+	while (str[i] == ' ' || str[i] == '\t' || str[i] == '\n' || str[i] == '\v'
+			|| str[i] == '\f' || str[i] == '\r')
+		i++;
+	if (str[i] == '-')
+		sign = -1;
+	if (str[i] == '-' || str[i] == '+')
+		i++;
+	while (str[i] >= '0' && str[i] <= '9')
+	{
+		nb = nb * 10 + (str[i] - '0');
+		i++;
+	}
+	return (sign * nb);
+}
+
+void	destroy_all(char *str, t_data *data, pthread_mutex_t *forks)
+{
+	int	i;
+
+	i = 0;
+	if (str)
+	{
+		write(2, str, ft_strlen(str));
+		write(2, "\n", 1);
+	}
+	pthread_mutex_destroy(&data->write_lock);
+	pthread_mutex_destroy(&data->meal_lock);
+	pthread_mutex_destroy(&data->dead_lock);
+	while (i < data->philos[0].num_of_philos)
+	{
+		pthread_mutex_destroy(&forks[i]);
+		i++;
+	}
+}
+
+int	ft_usleep(size_t milliseconds)
+{
+	size_t	start;
+
+	start = get_current_time();
+	while ((get_current_time() - start) < milliseconds)
 		usleep(500);
 	return (0);
 }
 
-void	print_status(t_philo *philo, char *message)
+size_t	get_current_time(void)
 {
-	unsigned long long	current_time;
+	struct timeval	time;
 
-	current_time = get_time_in_us();
-	pthread_mutex_lock(&philo->data->write_lock);
-	printf("%llu %d %s\n", (current_time - philo->data->start_time)
-		/ 1000, philo->index, message);
-	pthread_mutex_unlock(&philo->data->write_lock);
-}
-
-unsigned long long	*ft_ato2long(char **str, int argc)
-{
-	unsigned int		i;
-	unsigned int		j;
-	unsigned long long	*ret;
-
-	ret = malloc((argc - 1) * sizeof(unsigned long long));
-	i = 0;
-	while (++i < (unsigned int)argc)
-		ret[i - 1] = 0;
-	i = 0;
-	while (++i < (unsigned int) argc)
-	{
-		j = -1;
-		while (str[i][++j] != '\0')
-			ret[i - 1] = ret[i - 1] * 10 + (str[i][j] - 48);
-	}
-	i = 0;
-	while (++i < (unsigned int)argc)
-	{
-		if (ret[i - 1] == 0 || ret[0] > 200)
-		{
-			free(ret);
-			return (NULL);
-		}
-	}
-	return (ret);
+	if (gettimeofday(&time, NULL) == -1)
+		write(2, "gettimeofday() error\n", 22);
+	return (time.tv_sec * 1000 + time.tv_usec / 1000);
 }

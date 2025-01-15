@@ -7,6 +7,9 @@ CFLAGS = -Wall -Werror -Wextra -g -pthread
 SRC = main.c \
       init.c \
       utils.c \
+      monitor.c \
+      routine_actions.c \
+      threads.c \
 
 OBJ = $(SRC:.c=.o)
 

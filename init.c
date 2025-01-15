@@ -1,107 +1,60 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   init.c                                             :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: echiu <marvin@42.fr>                       +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/09/03 15:11:55 by echiu             #+#    #+#             */
-/*   Updated: 2024/11/04 15:54:03 by echiu            ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include "philo.h"
 
-void	init_threads(t_data *data)
+void	init_input(t_philo *philo, char **argv)
 {
-	pthread_t	t0;
-
-	data->nbr = 0;
-	while (data->nbr < data->philo_num)
-	{
-		if (pthread_create(&data->philos[data->nbr].thread, NULL,
-				&routine, (void *)&data->philos[data->nbr]) != 0)
-		{
-			printf("Error creating philosopher thread\n");
-			return ;
-		}
-		data->nbr++;
-	}
-	if (data->num_times_to_eat > 0)
-	{
-		if (pthread_create(&t0, NULL, &monitor, (void *)data) != 0)
-		{
-			printf("Error creating monitor thread\n");
-			return ;
-		}
-	}
-	if (data->num_times_to_eat > 0)
-		pthread_join(t0, NULL);
-	data->nbr = 0;
-	while (data->nbr < data->philo_num)
-	{
-		pthread_join(data->philos[data->nbr].thread, NULL);
-		data->nbr++;
-	}
-}
-
-void	init_philos(t_data *data)
-{
-	while (data->nbr < data->philo_num)
-	{
-		pthread_mutex_init(&data->forks[data->nbr], NULL);
-		data->nbr++;
-	}
-	data->nbr = 0;
-	while (data->nbr < data->philo_num)
-	{
-		data->philos[data->nbr].data = data;
-		data->philos[data->nbr].index = data->nbr + 1;
-		data->philos[data->nbr].l_fork = &data->forks[data->nbr];
-		data->philos[data->nbr].r_fork = &data->forks[(data->nbr + 1)
-			% data->philo_num];
-		data->philos[data->nbr].write_lock = &data->write_lock;
-		data->philos[data->nbr].dead_lock = &data->dead_lock;
-		data->philos[data->nbr].meal_lock = &data->meal_lock;
-		data->nbr++;
-	}
-}
-
-void	init_data(t_data *data, unsigned long long *arr, int argc) // Function too long
-{
-	data->nbr = 0;
-	data->dead = 0;
-	data->finished = 0;
-	data->philo_num = arr[0];
-	data->time_to_die = arr[1];
-	data->time_to_eat = arr[2];
-	data->time_to_sleep = arr[3];
-	if (argc == 6)
-		data->num_times_to_eat = arr[4];
+	philo->time_to_die = ft_atoi(argv[2]);
+	philo->time_to_eat = ft_atoi(argv[3]);
+	philo->time_to_sleep = ft_atoi(argv[4]);
+	philo->num_of_philos = ft_atoi(argv[1]);
+	if (argv[5])
+		philo->num_times_to_eat = ft_atoi(argv[5]);
 	else
-		data->num_times_to_eat = 0;
-	if (data->philo_num <= 0 || data->time_to_die <= 0
-		|| data->time_to_eat <= 0 || data->time_to_sleep <= 0)
+		philo->num_times_to_eat = -1;
+}
+
+void	init_philos(t_philo *philos, t_data *data, pthread_mutex_t *forks, char **argv)
+{
+	int	i;
+
+	i = 0;
+	while (i < ft_atoi(argv[1]))
 	{
-		printf("Error with the arguments\n");
-		return ;
+		philos[i].id = i + 1;
+		philos[i].eating = 0;
+		philos[i].meals_eaten = 0;
+		init_input(&philos[i], argv);
+		philos[i].start_time = get_current_time();
+		philos[i].last_meal = get_current_time();
+		philos[i].write_lock = &data->write_lock;
+		philos[i].dead_lock = &data->dead_lock;
+		philos[i].meal_lock = &data->meal_lock;
+		philos[i].dead = &data->dead_flag;
+		philos[i].l_fork = &forks[i];
+		if (i == 0)
+			philos[i].r_fork = &forks[philos[i].num_of_philos - 1];
+		else
+			philos[i].r_fork = &forks[i - 1];
+		i++;
 	}
-	data->philos = malloc(data->philo_num * sizeof(t_philo));
-	data->forks = malloc(data->philo_num * sizeof(pthread_mutex_t));
-	if (pthread_mutex_init(&data->write_lock, NULL) != 0)
+}
+
+void	init_forks(pthread_mutex_t *forks, int philo_num)
+{
+	int	i;
+
+	i = 0;
+	while (i < philo_num)
 	{
-		printf("error\n");
-		return ;
+		pthread_mutex_init(&forks[i], NULL);
+		i++;
 	}
-	if (pthread_mutex_init(&data->dead_lock, NULL) != 0)
-	{
-		printf("error\n");
-		return ;
-	}
-	if (pthread_mutex_init(&data->meal_lock, NULL) != 0)
-	{
-		printf("error\n");
-		return ;
-	}
-	data->start_time = get_time_in_us();
+}
+
+void	init_data(t_data *data, t_philo *philos)
+{
+	data->dead_flag = 0;
+	data->philos = philos;
+	pthread_mutex_init(&data->write_lock, NULL);
+	pthread_mutex_init(&data->dead_lock, NULL);
+	pthread_mutex_init(&data->meal_lock, NULL);
 }
