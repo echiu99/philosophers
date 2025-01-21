@@ -28,7 +28,7 @@ The program simulates the behavior of philosophers and forks based on the provid
 - time_to_sleep: Time (in milliseconds) a philosopher spends sleeping.
 - number_of_times_each_philosopher_must_eat (optional): If provided, the simulation ends when each philosopher has eaten the specified number of times.
 
-## Example:
+### Example:
 ./philo 5 800 200 200  
 
 This runs a simulation with 5 philosophers where each must eat every 800 ms, and eating and sleeping both take 200 ms.
