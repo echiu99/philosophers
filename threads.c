@@ -14,11 +14,13 @@ void	*philo_routine(void *pointer)
 	t_philo	*philo;
 
 	philo = (t_philo *)pointer;
-	if (philo->id % 2 == 0)
+	if (philo->id % 2 == 1)
 		ft_usleep(1);
 	while (!dead_loop(philo))
 	{
+		pick_up_forks(philo);
 		eat(philo);
+		drop_forks(philo);
 		dream(philo);
 		think(philo);
 	}

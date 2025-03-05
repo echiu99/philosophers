@@ -30,10 +30,10 @@ void	init_philos(t_philo *philos, t_data *data, pthread_mutex_t *forks, char **a
 		philos[i].meal_lock = &data->meal_lock;
 		philos[i].dead = &data->dead_flag;
 		philos[i].l_fork = &forks[i];
-		if (i == 0)
-			philos[i].r_fork = &forks[philos[i].num_of_philos - 1];
+		if (i == philos[0].num_of_philos - 1)
+			philos[i].r_fork = &forks[0];
 		else
-			philos[i].r_fork = &forks[i - 1];
+			philos[i].r_fork = &forks[i + 1];
 		i++;
 	}
 }
